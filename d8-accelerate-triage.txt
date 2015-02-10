@@ -1,0 +1,32 @@
+SELECT
+  n.nid,
+  n.title,
+  GROUP_CONCAT(terms.name) AS tags,
+  FROM_UNIXTIME(n.changed) AS last_updated,
+  (SELECT FROM_UNIXTIME(MAX(f.timestamp))
+  FROM field_data_field_issue_files ff
+    INNER JOIN file_managed f ON f.fid = ff.field_issue_files_fid
+    WHERE  ff.entity_id = n.nid
+  ) AS last_patch
+
+FROM node n
+  # Issue tags.
+  INNER JOIN field_data_taxonomy_vocabulary_9 tags ON tags.entity_id = n.nid
+  INNER JOIN taxonomy_term_data terms ON terms.tid = tags.taxonomy_vocabulary_9_tid
+
+  # Project data.
+  INNER JOIN field_data_field_project project ON project.entity_id = n.nid
+  INNER JOIN field_data_field_issue_version version ON version.entity_id = n.nid
+  INNER JOIN field_data_field_issue_priority priority ON priority.entity_id = n.nid
+  INNER JOIN field_data_field_issue_category category ON category.entity_id = n.nid
+  INNER JOIN field_data_field_issue_status `status` on status.entity_id = n.nid
+
+WHERE n.status = 1
+ AND (project.field_project_target_id IN ('3060')) # Drupal core
+ AND (version.field_issue_version_value IN ('8.0.x-dev'))
+ AND (priority.field_issue_priority_value IN ('400')) # Critical
+ AND (category.field_issue_category_value  in ('1', '2')) # Bug, Task
+ AND (status.field_issue_status_value  in ('1', '13', '8', '14', '4')) # Open, not fixed
+
+GROUP BY(n.nid)
+;
