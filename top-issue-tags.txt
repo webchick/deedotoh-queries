@@ -1,0 +1,17 @@
+# Get a list of most popular issue tags for a given set of issues.
+SELECT terms.name, COUNT(terms.tid) AS total
+FROM node n
+inner join field_data_taxonomy_vocabulary_9 tags on tags.entity_id = n.nid
+inner join taxonomy_term_data terms ON terms.tid = tags.taxonomy_vocabulary_9_tid
+inner join field_data_field_project project on project.entity_id = n.nid
+inner join field_data_field_issue_version version on version.entity_id = n.nid
+inner join field_data_field_issue_priority p on p.entity_id = n.nid
+inner join field_data_field_issue_category c on c.entity_id = n.nid
+inner join field_data_field_issue_status s on s.entity_id = n.nid
+ and (project.field_project_target_id  in ('3060')) # Drupal Core
+ and (version.field_issue_version_value  in ('8.0.x-dev'))
+ and (p.field_issue_priority_value  in ('400')) # Critical
+ and (c.field_issue_category_value  in ('1', '2')) # Bug, Task
+ and (s.field_issue_status_value  in ('1', '13', '8', '14', '4')) # Open, not fixed
+GROUP BY(terms.tid)
+ORDER BY total DESC;
