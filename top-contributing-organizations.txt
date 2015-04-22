@@ -1,7 +1,17 @@
+# Organizations.
 SELECT n.title, u.name, COUNT(*) AS total
 FROM field_data_field_attribute_contribution_to attribution
 INNER JOIN `comment` c ON c.cid = attribution.entity_id
 INNER JOIN users u ON u.uid = c.uid
 INNER JOIN node n ON n.nid = attribution.field_attribute_contribution_to_target_id
 GROUP BY attribution.field_attribute_contribution_to_target_id, u.name
+ORDER BY title, total DESC;
+
+# Customers.
+SELECT n.title, u.name, COUNT(*) AS total
+FROM field_data_field_for_customer customer
+INNER JOIN `comment` c ON c.cid = customer.entity_id
+INNER JOIN users u ON u.uid = c.uid
+INNER JOIN node n ON n.nid = customer.field_for_customer_target_id
+GROUP BY customer.field_for_customer_target_id, u.name
 ORDER BY title, total DESC;
