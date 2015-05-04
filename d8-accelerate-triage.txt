@@ -1,21 +1,3 @@
-select DISTINCT u.name, COUNT(f.fid) AS total
-from node n
-inner join field_data_field_project project on project.entity_id = n.nid and project.field_project_target_id = 3060 -- core
-inner join field_data_field_issue_version version on version.entity_id = n.nid and version.field_issue_version_value = '8.0.x-dev'
-# inner join field_data_field_issue_status s on s.entity_id = n.nid and (s.field_issue_status_value <> 2 AND s.field_issue_status_value <> 7) -- fixed or closed (fixed)
-inner join field_data_field_issue_priority p on p.entity_id = n.nid and p.field_issue_priority_value = 400 -- critical
-inner join field_data_field_issue_files ff on ff.entity_id = n.nid
-inner join file_managed f on f.fid = ff.field_issue_files_fid
-inner join users u on u.uid = f.uid
-left join field_data_field_current org on org.entity_id = u.uid
-where u.uid <> 180064 -- system message
-and f.filename like '%.patch'
-and f.timestamp > unix_timestamp('2015-04-01 00:00:00')
-and f.timestamp < unix_timestamp('2015-05-01 00:00:00')
-GROUP BY u.name
-ORDER BY total DESC;
-
-
 SELECT
   n.nid,
   n.title,
