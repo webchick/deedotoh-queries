@@ -1,0 +1,9 @@
+/* All d.o users who work for Acquia currently. */
+SELECT u.uid, u.name
+FROM users u
+  INNER JOIN field_data_field_organizations profile ON profile.entity_id = u.uid
+  INNER JOIN field_data_field_organization_name organization ON organization.entity_id = profile.field_organizations_value
+  INNER JOIN field_data_field_current current ON current.entity_id = organization.entity_id
+WHERE organization.field_organization_name_value = 'Acquia'
+  AND current.field_current_value = 1
+;
