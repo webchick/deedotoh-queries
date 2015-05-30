@@ -7,3 +7,21 @@ FROM users u
 WHERE organization.field_organization_name_value = 'Acquia'
   AND current.field_current_value = 1
 ;
+
+/* Number of projects maintained by Acquia employees */
+SELECT DISTINCT(repos.repo_id)
+FROM versioncontrol_repositories repos
+  INNER JOIN versioncontrol_labels versions ON versions.repo_id = repos.repo_id
+  INNER JOIN versioncontrol_auth_account auth ON auth.repo_id = repos.repo_id
+  INNER JOIN versioncontrol_project_projects projects ON projects.repo_id = repos.repo_id
+  INNER JOIN field_data_field_project_type ptype ON ptype.entity_id = projects.nid
+  INNER JOIN users u ON auth.uid = u.uid
+  INNER JOIN field_data_field_organizations profile ON profile.entity_id = u.uid
+  INNER JOIN field_data_field_organization_name organization ON organization.entity_id = profile.field_organizations_value
+  INNER JOIN field_data_field_current current ON current.entity_id = organization.entity_id
+WHERE organization.field_organization_name_value = 'Acquia'
+  AND current.field_current_value = 1
+  AND auth.access = 2 /* committer */
+  AND ptype.field_project_type_value = 'full' /* exclude sandboxes */
+  AND (LEFT(versions.name, 2) = '7.' OR LEFT(versions.name, 2) = '8.') /* either 7 or 8 branch/tag */
+;
