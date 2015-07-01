@@ -49,3 +49,55 @@ WHERE organization.field_organization_name_value = 'Acquia'
 
 )
 AND commits.repo_id <> 2 /* exclude Drupal core */;
+
+/* Acquia's contributions to core - core commits */
+Copy/paste/modify this a lot, then add them together. :P
+
+git log 8.0.x --author=dries --since="March 1 2011" --oneline | wc -l
+    1302
+
+
+/* Acquia's contributions to core - issues closed */
+/* Basically stolen from https://www.drupal.org/sandbox/xjm/core_metrics  */
+select count(distinct n.nid) as node_count
+from node n
+
+inner join field_data_field_project project on project.entity_id = n.nid
+inner join field_data_field_issue_version version on version.entity_id = n.nid
+inner join field_data_field_issue_priority p on p.entity_id = n.nid
+inner join field_data_field_issue_category c on c.entity_id = n.nid
+inner join field_data_field_issue_status s on s.entity_id = n.nid
+
+
+inner join comment octo_c on octo_c.nid = n.nid
+left join field_data_comment_body octo_cb on octo_c.cid = octo_cb.entity_id
+left join field_data_field_issue_files octo_ff on octo_ff.entity_id = n.nid
+left join file_managed octo_files on octo_files.fid = octo_ff.field_issue_files_fid  and octo_files.uid in (
+SELECT u.uid
+FROM users u
+  INNER JOIN field_data_field_organizations profile ON profile.entity_id = u.uid
+  INNER JOIN field_data_field_organization_name organization ON organization.entity_id = profile.field_organizations_value
+  INNER JOIN field_data_field_current current ON current.entity_id = organization.entity_id
+WHERE organization.field_organization_name_value = 'Acquia'
+  AND current.field_current_value = 1
+)
+
+
+inner join field_data_field_issue_changes fixed_fc on fixed_fc.field_issue_changes_nid = n.nid
+inner join comment fixed_c on fixed_c.cid = fixed_fc.entity_id
+
+
+where n.status = 1
+ and (project.field_project_target_id  in ('3060'))
+ and (version.field_issue_version_value  in ('8.0.x-dev'))
+ and (s.field_issue_status_value  in ('2', '7'))
+
+and ((char_length(octo_cb.comment_body_value) > 500) or (octo_files.filename like '%.patch'))
+
+and octo_c.changed > unix_timestamp(date_sub(now(), interval 180 day))
+
+ and ( (fixed_fc.field_issue_changes_field_name = 'field_issue_status'  and fixed_fc.field_issue_changes_new_value  in ('a:1:{i:0;a:1:{s:5:"value";s:1:"2";}}')))
+
+
+order by n.nid
+;
